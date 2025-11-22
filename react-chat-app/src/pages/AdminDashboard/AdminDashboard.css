@@ -1,0 +1,553 @@
+/**
+ * Estilos del Dashboard de Administrador
+ * 
+ * Diseño basado en la imagen:
+ * - Fondo blanco
+ * - Header con menú desplegable
+ * - Cards de proyectos en tonos rosa/beige
+ * - Responsive para todos los dispositivos
+ */
+
+/* ========================================
+   LAYOUT PRINCIPAL
+   ======================================== */
+
+.admin-dashboard {
+  min-height: 100vh;
+  background-color: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========================================
+   HEADER
+   ======================================== */
+
+.admin-header {
+  background-color: #8B7355;
+  padding: 16px 24px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.header-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #FFFFFF;
+  margin: 0;
+}
+
+/* Botón de menú (hamburguesa) */
+.menu-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.menu-icon {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.menu-icon span {
+  width: 24px;
+  height: 3px;
+  background-color: #FFFFFF;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+/* Menú desplegable del header */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 24px;
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 200px;
+  padding: 8px 0;
+  z-index: 1000;
+  margin-top: 8px;
+}
+
+.menu-item {
+  width: 100%;
+  padding: 12px 20px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 15px;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.menu-item:hover {
+  background-color: #F5F5F5;
+}
+
+.menu-item.logout {
+  color: #D32F2F;
+}
+
+.menu-divider {
+  height: 1px;
+  background-color: #E0E0E0;
+  margin: 8px 0;
+}
+
+/* ========================================
+   MAIN CONTENT
+   ======================================== */
+
+.admin-main {
+  flex: 1;
+  padding: 32px 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ========================================
+   SECCIÓN PROYECTOS
+   ======================================== */
+
+.section-proyectos {
+  width: 100%;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+}
+
+.section-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1F1F1F;
+  margin: 0;
+}
+
+.btn-nuevo-proyecto {
+  background-color: #C4A57B;
+  color: #1F1F1F;
+  border: none;
+  border-radius: 20px;
+  padding: 12px 28px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-nuevo-proyecto:hover {
+  background-color: #B39568;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Lista de proyectos */
+.proyectos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Estado vacío */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.empty-state p {
+  margin: 8px 0;
+  font-size: 16px;
+}
+
+.empty-hint {
+  font-size: 14px;
+  color: #999;
+}
+
+/* ========================================
+   CARDS DE PROYECTOS
+   ======================================== */
+
+.project-card {
+  background-color: #E8C4C4;
+  border-radius: 12px;
+  padding: 20px 24px;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.project-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.project-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  position: relative;
+}
+
+.project-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin: 0;
+  cursor: pointer; /* Indicar que es clickeable */
+  transition: color 0.2s ease;
+}
+
+.project-title:hover {
+  color: #3498db; /* Cambiar color al pasar el cursor */
+  text-decoration: underline;
+  flex: 1;
+}
+
+/* Botón de menú del proyecto (3 puntos) */
+.project-menu-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #666;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.project-menu-btn:hover {
+  color: #1F1F1F;
+}
+
+/* Menú desplegable del proyecto */
+.project-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #FFFFFF;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 160px;
+  padding: 4px 0;
+  z-index: 1000; /* Aumentado para aparecer encima de otros proyectos */
+  margin-top: 4px;
+}
+
+.project-dropdown-item {
+  width: 100%;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-size: 14px;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.project-dropdown-item:hover {
+  background-color: #F5F5F5;
+}
+
+.project-dropdown-item.delete {
+  color: #D32F2F;
+}
+
+.project-description {
+  font-size: 14px;
+  color: #4A4A4A;
+  line-height: 1.6;
+  margin: 0 0 16px 0;
+}
+
+.project-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.project-manager {
+  font-size: 14px;
+  color: #1F1F1F;
+  font-weight: 500;
+}
+
+/* ========================================
+   PLACEHOLDER PARA OTRAS SECCIONES
+   ======================================== */
+
+.section-placeholder {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.section-placeholder h2 {
+  font-size: 28px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.section-placeholder p {
+  font-size: 16px;
+  color: #999;
+}
+
+/* ========================================
+   RESPONSIVE - TABLETS
+   ======================================== */
+
+@media (max-width: 768px) {
+  .admin-header {
+    padding: 14px 20px;
+  }
+  
+  .header-title {
+    font-size: 20px;
+  }
+  
+  .admin-main {
+    padding: 24px 20px;
+  }
+  
+  .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+  
+  .section-title {
+    font-size: 28px;
+  }
+  
+  .btn-nuevo-proyecto {
+    width: 100%;
+  }
+  
+  .project-title {
+    font-size: 18px;
+  }
+}
+
+/* ========================================
+   RESPONSIVE - MÓVILES
+   ======================================== */
+
+@media (max-width: 480px) {
+  .admin-header {
+    padding: 12px 16px;
+  }
+  
+  .header-title {
+    font-size: 18px;
+  }
+  
+  .dropdown-menu {
+    right: 16px;
+    left: 16px;
+    min-width: auto;
+  }
+  
+  .admin-main {
+    padding: 20px 16px;
+  }
+  
+  .section-title {
+    font-size: 24px;
+  }
+  
+  .btn-nuevo-proyecto {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+  
+  .project-card {
+    padding: 16px 18px;
+  }
+  
+  .project-title {
+    font-size: 16px;
+  }
+  
+  .project-description {
+    font-size: 13px;
+  }
+  
+  .project-manager {
+    font-size: 13px;
+  }
+}
+
+/* ========================================
+   MODALES
+   ======================================== */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal-content {
+  background-color: #E8E8E8;
+  border-radius: 12px;
+  padding: 32px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-content h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1F1F1F;
+  margin: 0 0 24px 0;
+  text-align: center;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1F1F1F;
+  margin-bottom: 8px;
+}
+
+.input-hint {
+  font-size: 13px;
+  color: #666;
+  margin: 4px 0 8px 0;
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 12px 16px;
+  background-color: #D4D4D4;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1F1F1F;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: 2px solid #C4A57B;
+  background-color: #E0E0E0;
+}
+
+.form-error {
+  background-color: #FFD4D4;
+  color: #D32F2F;
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.delete-warning {
+  background-color: #FFE8E8;
+  color: #666;
+  padding: 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.btn-cancel,
+.btn-submit,
+.btn-delete {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel {
+  background-color: #D4D4D4;
+  color: #1F1F1F;
+}
+
+.btn-cancel:hover {
+  background-color: #C4C4C4;
+}
+
+.btn-submit {
+  background-color: #C4A57B;
+  color: #1F1F1F;
+}
+
+.btn-submit:hover {
+  background-color: #B39568;
+}
+
+.btn-delete {
+  background-color: #FFB4AB;
+  color: #690005;
+}
+
+.btn-delete:hover {
+  background-color: #FF8A80;
+}
+
+.loading-projects,
+.error-projects {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+  font-size: 16px;
+}
+
+.error-projects {
+  color: #D32F2F;
+}

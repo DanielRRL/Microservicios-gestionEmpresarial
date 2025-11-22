@@ -1,0 +1,12 @@
+README.md
+pyproject.toml
+agentecongemini/__init__.py
+agentecongemini/api.py
+agentecongemini/client.py
+agentecongemini/main.py
+agentecongemini/server.py
+agentecongemini.egg-info/PKG-INFO
+agentecongemini.egg-info/SOURCES.txt
+agentecongemini.egg-info/dependency_links.txt
+agentecongemini.egg-info/requires.txt
+agentecongemini.egg-info/top_level.txt

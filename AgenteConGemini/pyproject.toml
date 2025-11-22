@@ -1,0 +1,22 @@
+[project]
+name = "agentecongemini"
+version = "0.1.0"
+description = "Task management agent with Gemini"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp>=1.0.0",
+    "mirascope[google]>=1.0.0", 
+    "pydantic>=2.0.0",
+    "httpx>=0.25.0",
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0"
+]
+
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["agentecongemini*"]

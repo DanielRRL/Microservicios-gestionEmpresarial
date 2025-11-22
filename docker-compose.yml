@@ -1,0 +1,208 @@
+version: '3.8'
+
+services:
+  # ==========================================
+  # PostgreSQL Database
+  # ==========================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: loyestask-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: loyestask
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - loyestask-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # MongoDB Database
+  # ==========================================
+  mongodb:
+    image: mongo:7-jammy
+    container_name: loyestask-mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: taskdb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - loyestask-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==========================================
+  # Auth Service
+  # ==========================================
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: loyestask-auth
+    restart: unless-stopped
+    ports:
+      - "4001:4001"
+    environment:
+      NODE_ENV: development
+      PORT: 4001
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/loyestask
+      JWT_SECRET: dev-secret-key-change-in-production
+      JWT_EXPIRES_IN: 30d
+      EMAIL_HOST: smtp.gmail.com
+      EMAIL_PORT: 587
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      EMAIL_FROM: noreply@loyestask.com
+      FRONTEND_URL: http://localhost:80
+      ADMIN_EMAIL: admin@test.com
+      ADMIN_PASSWORD: admin123
+      ADMIN_NAME: Admin User
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - loyestask-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4001/health')"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # ==========================================
+  # Task Service
+  # ==========================================
+  task-service:
+    build:
+      context: ./task-service
+      dockerfile: Dockerfile
+    container_name: loyestask-task
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      MONGO_URI: mongodb://admin:admin123@mongodb:27017/taskdb?authSource=admin
+    depends_on:
+      mongodb:
+        condition: service_healthy
+    networks:
+      - loyestask-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health')"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # ==========================================
+  # API Gateway
+  # ==========================================
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: loyestask-gateway
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      JWT_SECRET: dev-secret-key-change-in-production
+      AUTH_SERVICE_URL: http://auth-service:4001
+      TASK_SERVICE_URL: http://task-service:3000
+      FRONTEND_URL: http://localhost:80
+    depends_on:
+      auth-service:
+        condition: service_healthy
+      task-service:
+        condition: service_healthy
+    networks:
+      - loyestask-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:4000/health')"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # ==========================================
+  # Frontend (React)
+  # ==========================================
+  frontend:
+    build:
+      context: ./react-chat-app
+      dockerfile: Dockerfile
+    container_name: loyestask-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - loyestask-network
+
+  # ==========================================
+  # Adminer - PostgreSQL Web UI
+  # ==========================================
+  adminer:
+    image: adminer:latest
+    container_name: loyestask-adminer
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    networks:
+      - loyestask-network
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+
+  # ==========================================
+  # Mongo Express - MongoDB Web UI
+  # ==========================================
+  mongo-express:
+    image: mongo-express:latest
+    container_name: loyestask-mongo-express
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    networks:
+      - loyestask-network
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: admin123
+      ME_CONFIG_MONGODB_URL: mongodb://admin:admin123@mongodb:27017/
+      ME_CONFIG_BASICAUTH: "false"
+    depends_on:
+      - mongodb
+
+# ==========================================
+# Volumes
+# ==========================================
+volumes:
+  postgres_data:
+    name: loyestask-postgres-data
+  mongodb_data:
+    name: loyestask-mongodb-data
+
+# ==========================================
+# Networks
+# ==========================================
+networks:
+  loyestask-network:
+    name: loyestask-network
+    driver: bridge
