@@ -2,25 +2,23 @@
 
 API REST para gestión de proyectos y tareas usando Gemini 2.0 Flash.
 
-## 🚀 Inicio Rápido
+## 🚀 Inicio Rápido con Docker
 
-### 1. Configurar variables de entorno
-```bash
-# Crear archivo .env
-echo "GOOGLE_API_KEY=tu_clave_aqui" > .env
-```
+El agente se inicia automáticamente con docker-compose:
 
-### 2. Instalar dependencias
 ```bash
-uv sync
-```
-
-### 3. Iniciar API
-```bash
-./start_api.sh
+# Desde la raíz del proyecto
+docker-compose up -d ai-agent
 ```
 
 La API estará disponible en: **http://localhost:8000**
+
+### Variables de Entorno
+
+Configuradas en `/.env`:
+```bash
+GOOGLE_API_KEY=tu_clave_aqui
+```
 
 ## 📡 API Endpoints
 
@@ -172,21 +170,32 @@ Task Service (Puerto 3000)
 
 ## ⚠️ Requisitos
 
-1. **GOOGLE_API_KEY** configurada en `.env`
-2. **Task Service** ejecutándose en puerto 3000
-3. **Python 3.12+** con `uv` instalado
+1. **GOOGLE_API_KEY** configurada en `/.env`
+2. **Task Service** ejecutándose en contenedor Docker
+3. **Docker** y **docker-compose** instalados
 
 ## 🛠️ Comandos Útiles
 
 ```bash
-# Iniciar API
-./start_api.sh
+# Verificar estado del agente
+docker-compose ps ai-agent
 
-# CLI interactiva (modo consola)
-uv run run.py
+# Ver logs
+docker-compose logs -f ai-agent
 
-# Tests
-uv run python test_api.py
+# Reiniciar agente
+docker-compose restart ai-agent
+
+# Detener agente
+docker-compose stop ai-agent
+
+# Health check
+curl http://localhost:8000/api/health
+
+# Enviar mensaje
+curl -X POST http://localhost:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Muéstrame todos los proyectos"}'
 ```
 
 ## 📚 Documentación

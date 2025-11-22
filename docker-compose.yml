@@ -158,6 +158,32 @@ services:
       - loyestask-network
 
   # ==========================================
+  # AI Agent - Gemini
+  # ==========================================
+  ai-agent:
+    build:
+      context: ./AgenteConGemini
+      dockerfile: Dockerfile
+    container_name: loyestask-ai-agent
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY}
+      TASK_SERVICE_URL: http://task-service:3000
+      PYTHONUNBUFFERED: 1
+    depends_on:
+      task-service:
+        condition: service_healthy
+    networks:
+      - loyestask-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+  # ==========================================
   # Adminer - PostgreSQL Web UI
   # ==========================================
   adminer:
