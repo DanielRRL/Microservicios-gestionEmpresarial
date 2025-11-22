@@ -1,4 +1,5 @@
 import asyncio
+import os
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional, Annotated
 import httpx
@@ -6,6 +7,7 @@ from mcp.server import Server
 from mcp.server.fastmcp import FastMCP
 from mcp.types import Tool
 from pydantic import BaseModel, Field, ConfigDict
+from .auth import get_auth
 
 # Modelos corregidos según tus schemas reales
 class CompletedBy(BaseModel):
@@ -49,7 +51,8 @@ class Project(BaseModel):
 
 # ✅ Cliente HTTP compartido
 http_client: Optional[httpx.AsyncClient] = None
-TASK_SERVICE_URL = "http://localhost:3000/api"
+# Usar API Gateway en lugar de task-service directo
+API_GATEWAY_URL = os.getenv("API_GATEWAY_URL", "http://api-gateway:4000")
 
 async def get_http_client() -> httpx.AsyncClient:
     """Obtiene el cliente HTTP global"""
@@ -57,6 +60,12 @@ async def get_http_client() -> httpx.AsyncClient:
     if http_client is None:
         http_client = httpx.AsyncClient()
     return http_client
+
+async def get_auth_headers() -> dict:
+    """Obtiene headers de autenticación con JWT válido"""
+    auth = get_auth()
+    token = await auth.get_token()
+    return {"Authorization": f"Bearer {token}"}
 
 mcp = FastMCP("Task Management Agent")
 
@@ -66,7 +75,8 @@ mcp = FastMCP("Task Management Agent")
 async def get_all_projects() -> List[Project]:
     """Obtiene todos los proyectos"""
     client = await get_http_client()
-    response = await client.get(f"{TASK_SERVICE_URL}/projects")
+    headers = await get_auth_headers()
+    response = await client.get(f"{API_GATEWAY_URL}/api/projects", headers=headers)
     response.raise_for_status()
     projects_data = response.json()
     return [Project(**project) for project in projects_data]
@@ -75,7 +85,8 @@ async def get_all_projects() -> List[Project]:
 async def get_project_by_id(project_id: str) -> Project:
     """Obtiene un proyecto específico por ID"""
     client = await get_http_client()
-    response = await client.get(f"{TASK_SERVICE_URL}/projects/{project_id}")
+    headers = await get_auth_headers()
+    response = await client.get(f"{API_GATEWAY_URL}/api/projects/{project_id}", headers=headers)
     response.raise_for_status()
     project_data = response.json()
     return Project(**project_data)
@@ -84,12 +95,13 @@ async def get_project_by_id(project_id: str) -> Project:
 async def create_project(name: str, description: str, client_name: str = "") -> Project:
     """Crea un nuevo proyecto"""
     client = await get_http_client()
+    headers = await get_auth_headers()
     payload = {
         "name": name,
         "description": description,
         "clientName": client_name
     }
-    response = await client.post(f"{TASK_SERVICE_URL}/projects", json=payload)
+    response = await client.post(f"{API_GATEWAY_URL}/api/projects", json=payload, headers=headers)
     response.raise_for_status()
     project_data = response.json()
     return Project(**project_data)
@@ -98,6 +110,7 @@ async def create_project(name: str, description: str, client_name: str = "") -> 
 async def update_project(project_id: str, name: str = "", description: str = "", client_name: str = "") -> Project:
     """Actualiza un proyecto existente"""
     client = await get_http_client()
+    headers = await get_auth_headers()
     payload = {}
     if name:
         payload["name"] = name
@@ -106,7 +119,7 @@ async def update_project(project_id: str, name: str = "", description: str = "",
     if client_name:
         payload["clientName"] = client_name
     
-    response = await client.patch(f"{TASK_SERVICE_URL}/projects/{project_id}", json=payload)
+    response = await client.put(f"{API_GATEWAY_URL}/api/projects/{project_id}", json=payload, headers=headers)
     response.raise_for_status()
     project_data = response.json()
     return Project(**project_data)
@@ -115,7 +128,8 @@ async def update_project(project_id: str, name: str = "", description: str = "",
 async def delete_project(project_id: str) -> Dict[str, str]:
     """Elimina un proyecto"""
     client = await get_http_client()
-    response = await client.delete(f"{TASK_SERVICE_URL}/projects/{project_id}")
+    headers = await get_auth_headers()
+    response = await client.delete(f"{API_GATEWAY_URL}/api/projects/{project_id}", headers=headers)
     response.raise_for_status()
     return {"message": "Project deleted successfully"}
 
@@ -125,7 +139,8 @@ async def delete_project(project_id: str) -> Dict[str, str]:
 async def get_tasks_by_project(project_id: str) -> List[Task]:
     """Obtiene todas las tareas de un proyecto"""
     client = await get_http_client()
-    response = await client.get(f"{TASK_SERVICE_URL}/projects/{project_id}/tasks")
+    headers = await get_auth_headers()
+    response = await client.get(f"{API_GATEWAY_URL}/api/projects/{project_id}/tasks", headers=headers)
     response.raise_for_status()
     tasks_data = response.json()
     return [Task(**task) for task in tasks_data]
@@ -134,7 +149,8 @@ async def get_tasks_by_project(project_id: str) -> List[Task]:
 async def get_task_by_id(project_id: str, task_id: str) -> Task:
     """Obtiene una tarea específica por ID"""
     client = await get_http_client()
-    response = await client.get(f"{TASK_SERVICE_URL}/projects/{project_id}/tasks/{task_id}")
+    headers = await get_auth_headers()
+    response = await client.get(f"{API_GATEWAY_URL}/api/projects/{project_id}/tasks/{task_id}", headers=headers)
     response.raise_for_status()
     task_data = response.json()
     return Task(**task_data)
@@ -143,11 +159,12 @@ async def get_task_by_id(project_id: str, task_id: str) -> Task:
 async def create_task(project_id: str, name: str, description: str = "") -> Task:
     """Crea una nueva tarea en un proyecto"""
     client = await get_http_client()
+    headers = await get_auth_headers()
     payload = {
         "name": name,
         "description": description
     }
-    response = await client.post(f"{TASK_SERVICE_URL}/projects/{project_id}/tasks", json=payload)
+    response = await client.post(f"{API_GATEWAY_URL}/api/projects/{project_id}/tasks", json=payload, headers=headers)
     response.raise_for_status()
     task_data = response.json()
     return Task(**task_data)
@@ -156,13 +173,14 @@ async def create_task(project_id: str, name: str, description: str = "") -> Task
 async def update_task(project_id: str, task_id: str, name: str = "", description: str = "") -> Task:
     """Actualiza una tarea existente"""
     client = await get_http_client()
+    headers = await get_auth_headers()
     payload = {}
     if name:
         payload["name"] = name
     if description:
         payload["description"] = description
     
-    response = await client.put(f"{TASK_SERVICE_URL}/projects/{project_id}/tasks/{task_id}", json=payload)
+    response = await client.put(f"{API_GATEWAY_URL}/api/projects/{project_id}/tasks/{task_id}", json=payload, headers=headers)
     response.raise_for_status()
     task_data = response.json()
     return Task(**task_data)
@@ -171,8 +189,9 @@ async def update_task(project_id: str, task_id: str, name: str = "", description
 async def update_task_status(project_id: str, task_id: str, status: str) -> Task:
     """Actualiza el estado de una tarea"""
     client = await get_http_client()
+    headers = await get_auth_headers()
     payload = {"status": status}
-    response = await client.post(f"{TASK_SERVICE_URL}/projects/{project_id}/tasks/{task_id}/status", json=payload)
+    response = await client.post(f"{API_GATEWAY_URL}/api/projects/{project_id}/tasks/{task_id}/status", json=payload, headers=headers)
     response.raise_for_status()
     task_data = response.json()
     return Task(**task_data)
@@ -181,7 +200,8 @@ async def update_task_status(project_id: str, task_id: str, status: str) -> Task
 async def delete_task(project_id: str, task_id: str) -> Dict[str, str]:
     """Elimina una tarea"""
     client = await get_http_client()
-    response = await client.delete(f"{TASK_SERVICE_URL}/projects/{project_id}/tasks/{task_id}")
+    headers = await get_auth_headers()
+    response = await client.delete(f"{API_GATEWAY_URL}/api/projects/{project_id}/tasks/{task_id}", headers=headers)
     response.raise_for_status()
     return {"message": "Task deleted successfully"}
 
@@ -191,7 +211,8 @@ async def delete_task(project_id: str, task_id: str) -> Dict[str, str]:
 async def get_notes_by_task(project_id: str, task_id: str) -> List[Note]:
     """Obtiene todas las notas de una tarea"""
     client = await get_http_client()
-    response = await client.get(f"{TASK_SERVICE_URL}/projects/{project_id}/tasks/{task_id}/notes")
+    headers = await get_auth_headers()
+    response = await client.get(f"{API_GATEWAY_URL}/api/projects/{project_id}/tasks/{task_id}/notes", headers=headers)
     response.raise_for_status()
     notes_data = response.json()
     return [Note(**note) for note in notes_data]
@@ -200,8 +221,9 @@ async def get_notes_by_task(project_id: str, task_id: str) -> List[Note]:
 async def create_note(project_id: str, task_id: str, content: str) -> Note:
     """Crea una nueva nota en una tarea"""
     client = await get_http_client()
+    headers = await get_auth_headers()
     payload = {"content": content}
-    response = await client.post(f"{TASK_SERVICE_URL}/projects/{project_id}/tasks/{task_id}/notes", json=payload)
+    response = await client.post(f"{API_GATEWAY_URL}/api/projects/{project_id}/tasks/{task_id}/notes", json=payload, headers=headers)
     response.raise_for_status()
     note_data = response.json()
     return Note(**note_data)
@@ -210,7 +232,8 @@ async def create_note(project_id: str, task_id: str, content: str) -> Note:
 async def delete_note(project_id: str, task_id: str, note_id: str) -> Dict[str, str]:
     """Elimina una nota"""
     client = await get_http_client()
-    response = await client.delete(f"{TASK_SERVICE_URL}/projects/{project_id}/tasks/{task_id}/notes/{note_id}")
+    headers = await get_auth_headers()
+    response = await client.delete(f"{API_GATEWAY_URL}/api/projects/{project_id}/tasks/{task_id}/notes/{note_id}", headers=headers)
     response.raise_for_status()
     return {"message": "Note deleted successfully"}
 

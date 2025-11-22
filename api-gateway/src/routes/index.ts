@@ -6,6 +6,7 @@ import { requireAdmin, requireUser } from '../middleware/roles';
 export function setupProxies(app: Express) {
   const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:4001';
   const TASK_SERVICE_URL = process.env.TASK_SERVICE_URL || 'http://localhost:3000';
+  const AI_AGENT_URL = process.env.AI_AGENT_URL || 'http://ai-agent:8000';
 
   // ========================================
   // AUTH SERVICE ROUTES
@@ -215,13 +216,49 @@ export function setupProxies(app: Express) {
   // Todas las rutas de notas requieren autenticación
   app.use('/api/notes', verifyToken, requireUser, proxyToTaskService('/api/notes'));
 
+  // ========================================
+  // AI AGENT ROUTES
+  // ========================================
+  
+  // POST /api/ai/chat - Solo ADMIN puede usar el agente
+  app.post('/api/ai/chat', verifyToken, requireAdmin, createProxyMiddleware({
+    target: AI_AGENT_URL,
+    changeOrigin: true,
+    pathRewrite: {
+      '^/api/ai': '/api'  // /api/ai/chat -> /api/chat
+    },
+    on: {
+      proxyReq: (proxyReq: any, req: AuthRequest) => {
+        console.log(`[AI Agent] POST /api/ai/chat -> /api/chat - Admin: ${req.user?.id}`);
+      },
+      error: handleProxyError
+    }
+  }));
+
+  // GET /api/ai/health - Health check del agente (público para monitoreo)
+  app.get('/api/ai/health', createProxyMiddleware({
+    target: AI_AGENT_URL,
+    changeOrigin: true,
+    pathRewrite: {
+      '^/api/ai': '/api'  // /api/ai/health -> /api/health
+    },
+    on: {
+      proxyReq: (proxyReq: any, req: any) => {
+        console.log(`[AI Agent] GET /api/ai/health -> /api/health`);
+      },
+      error: handleProxyError
+    }
+  }));
+
   console.log(' Proxies configurados con autenticación JWT');
   console.log(`   AUTH Service: ${AUTH_SERVICE_URL}`);
   console.log(`   TASK Service: ${TASK_SERVICE_URL}`);
+  console.log(`   AI Agent: ${AI_AGENT_URL}`);
   console.log('');
   console.log(' Rutas protegidas:');
   console.log('   Públicas:');
   console.log('     POST /api/auth/login');
+  console.log('     GET  /api/ai/health');
   console.log('   Requieren JWT (user o admin):');
   console.log('     GET  /api/auth/me');
   console.log('     GET  /api/projects');
@@ -238,6 +275,7 @@ export function setupProxies(app: Express) {
   console.log('     POST /api/projects/:projectId/members');
   console.log('     DELETE /api/projects/:projectId/members/:userId');
   console.log('     DELETE /api/projects/:projectId/tasks/:taskId');
+  console.log('     POST /api/ai/chat');
 }
 
 // Helper function para crear proxy al task service

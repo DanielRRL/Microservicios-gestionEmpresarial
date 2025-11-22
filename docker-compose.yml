@@ -127,6 +127,7 @@ services:
       JWT_SECRET: dev-secret-key-change-in-production
       AUTH_SERVICE_URL: http://auth-service:4001
       TASK_SERVICE_URL: http://task-service:3000
+      AI_AGENT_URL: http://ai-agent:8000
       FRONTEND_URL: http://localhost:80
     depends_on:
       auth-service:
@@ -170,10 +171,12 @@ services:
       - "8000:8000"
     environment:
       GOOGLE_API_KEY: ${GOOGLE_API_KEY}
-      TASK_SERVICE_URL: http://task-service:3000
+      API_GATEWAY_URL: http://api-gateway:4000
+      ADMIN_EMAIL: ${ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       PYTHONUNBUFFERED: 1
     depends_on:
-      task-service:
+      api-gateway:
         condition: service_healthy
     networks:
       - loyestask-network

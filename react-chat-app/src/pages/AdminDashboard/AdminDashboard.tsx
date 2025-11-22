@@ -206,6 +206,12 @@ const AdminDashboard: React.FC = () => {
    * Cambiar de sección
    */
   const handleSectionChange = (section: AdminSection) => {
+    // Si es IA, navegar a la ruta /ai
+    if (section === 'ia') {
+      navigate('/ai');
+      return;
+    }
+    
     setCurrentSection(section);
     setMenuOpen(false);
   };

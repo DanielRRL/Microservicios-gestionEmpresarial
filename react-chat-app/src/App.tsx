@@ -20,6 +20,7 @@ import AdminDashboard from './pages/AdminDashboard/AdminDashboard';
 import UserDashboard from './pages/UserDashboard/UserDashboard';
 import ProjectDetail from './pages/ProjectDetail/ProjectDetail';
 import ProjectMembers from './pages/ProjectMembers/ProjectMembers';
+import AIView from './pages/AIView/AIView';
 import ProtectedRoute from './components/ProtectedRoute';
 import authService from './services/authService';
 import './styles/globals.css';
@@ -96,6 +97,16 @@ const App: React.FC = () => {
           element={
             <ProtectedRoute requireAdmin>
               <ProjectMembers />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Ruta protegida - AI Assistant (solo admin) */}
+        <Route 
+          path="/ai" 
+          element={
+            <ProtectedRoute requireAdmin>
+              <AIView />
             </ProtectedRoute>
           } 
         />
